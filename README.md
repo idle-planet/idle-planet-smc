@@ -1,5 +1,11 @@
 # Publish module
 
+0. Faucet
+
+```
+aptos account fund-with-faucet --profile default
+```
+
 1. Calculate resource account address
 
 ```
