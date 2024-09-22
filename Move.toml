@@ -1,0 +1,25 @@
+[package]
+name = "idle_planet"
+version = "1.0.0"
+upgrade_policy = "compatible"
+authors = []
+
+[addresses]
+module_addr = "0xb341640e53e3c8630129b2a1378e0060cf410be5622906f213b9b37941806320"
+admin = "0xa23e4cf349015e4ed268e470b49ac52a96b276cdc2a21eb96457e8e24943de5b"
+default_beneficary_addr = "0xa23e4cf349015e4ed268e470b49ac52a96b276cdc2a21eb96457e8e24943de5b"
+std = "0x1"
+aptos_std = "0x1"
+aptos_framework = "0x1"
+
+[dependencies.AptosFramework]
+git = "https://github.com/aptos-labs/aptos-core.git"
+rev = "mainnet"
+subdir = "aptos-move/framework/aptos-framework"
+
+[dependencies.AptosTokenObjects]
+git = "https://github.com/aptos-labs/aptos-core.git"
+rev = "mainnet"
+subdir = "aptos-move/framework/aptos-token-objects"
+
+[dev-dependencies]
