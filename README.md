@@ -35,13 +35,13 @@ aptos move build-publish-payload --json-output-file upgrade.json
 
 ```
 0x1::code::publish_package_txn
--> 0xe1b8d0c21f8bbb07c3702b6dce8f52dd2d8d64cb95cb2d4589eda48bd39c4cba::idle_planet_access::upgrade
+-> 0xb341640e53e3c8630129b2a1378e0060cf410be5622906f213b9b37941806320::idle_planet_access::upgrade
 ```
 
 2. Deploy modified contract
 
 ```
-aptos move run --json-file upgrade.json --included-artifacts none
+aptos move run --json-file upgrade.json
 ```
 
 # Call function

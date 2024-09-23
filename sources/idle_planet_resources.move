@@ -30,6 +30,13 @@ module module_addr::idle_planet {
         amount: u64
     }
 
+    #[event]
+    struct PlanetUpgradeEvent has drop, store {
+        user: address,
+        resource: String,
+        p_rate: u64
+    }
+
     // Storage
     struct GOLD {}
     struct STONE {}
@@ -145,6 +152,9 @@ module module_addr::idle_planet {
     #[view]
     public fun claimable_resource<ResourceType>(user_addr: address): u64 acquires MyPlanetResource, UniverseResource {
         let universe_resource = borrow_global<UniverseResource<ResourceType>>(@module_addr);
+        if (!exists<MyPlanetResource<ResourceType>>(user_addr)) {
+            return 0;
+        };
         let my_planet_resource = borrow_global<MyPlanetResource<ResourceType>>(user_addr);
         let now_s = timestamp::now_seconds();
         let time_diff_minutes = (now_s - my_planet_resource.last_claim_ts) / 60;
@@ -175,6 +185,9 @@ module module_addr::idle_planet {
 
         // Transfer reward
         let reward_coin = coin::mint<ResourceType>(claimable_reward, &universe_resource.mint_cap);
+        if (!coin::is_account_registered<ResourceType>(user_addr)) {
+            coin::register<ResourceType>(user);
+        };
         coin::deposit(user_addr, reward_coin);
 
         // Emit event
@@ -184,6 +197,98 @@ module module_addr::idle_planet {
             user: user_addr,
             resource: string::utf8(struct_name),
             amount: claimable_reward
+        });
+    }
+
+    public entry fun upgrade_food(user: &signer) acquires MyPlanetResource, UniverseResource {
+        let user_addr = signer::address_of(user);
+        let my_planet_resource = borrow_global_mut<MyPlanetResource<FOOD>>(user_addr);
+        
+        // Calculate metarial need for upgrade
+        let material_amount = C_MAX_CLAIMABLE_RESOURCE * my_planet_resource.p_rate * 7;
+        let coin = coin::withdraw<GOLD>(user, material_amount);
+
+        // burn material coin
+        let universe_resource = borrow_global<UniverseResource<GOLD>>(@module_addr);
+        coin::burn(coin, &universe_resource.burn_cap);
+        my_planet_resource.p_rate = my_planet_resource.p_rate + 1;
+
+        // Emit event
+        let type = type_info::type_of<FOOD>();
+        let struct_name = type_info::struct_name(&type);
+        event::emit(PlanetUpgradeEvent {
+            user: user_addr,
+            resource: string::utf8(struct_name),
+            p_rate: my_planet_resource.p_rate
+        });
+    }
+
+    public entry fun upgrade_gold(user: &signer) acquires MyPlanetResource, UniverseResource {
+        let user_addr = signer::address_of(user);
+        let my_planet_resource = borrow_global_mut<MyPlanetResource<GOLD>>(user_addr);
+        
+        // Calculate metarial need for upgrade
+        let material_amount = C_MAX_CLAIMABLE_RESOURCE * my_planet_resource.p_rate * 7;
+        let coin = coin::withdraw<STONE>(user, material_amount);
+
+        // burn material coin
+        let universe_resource = borrow_global<UniverseResource<STONE>>(@module_addr);
+        coin::burn(coin, &universe_resource.burn_cap);
+        my_planet_resource.p_rate = my_planet_resource.p_rate + 1;
+
+        // Emit event
+        let type = type_info::type_of<GOLD>();
+        let struct_name = type_info::struct_name(&type);
+        event::emit(PlanetUpgradeEvent {
+            user: user_addr,
+            resource: string::utf8(struct_name),
+            p_rate: my_planet_resource.p_rate
+        });
+    }
+
+    public entry fun upgrade_stone(user: &signer) acquires MyPlanetResource, UniverseResource {
+        let user_addr = signer::address_of(user);
+        let my_planet_resource = borrow_global_mut<MyPlanetResource<STONE>>(user_addr);
+        
+        // Calculate metarial need for upgrade
+        let material_amount = C_MAX_CLAIMABLE_RESOURCE * my_planet_resource.p_rate * 7;
+        let coin = coin::withdraw<LUMBER>(user, material_amount);
+
+        // burn material coin
+        let universe_resource = borrow_global<UniverseResource<LUMBER>>(@module_addr);
+        coin::burn(coin, &universe_resource.burn_cap);
+        my_planet_resource.p_rate = my_planet_resource.p_rate + 1;
+
+        // Emit event
+        let type = type_info::type_of<STONE>();
+        let struct_name = type_info::struct_name(&type);
+        event::emit(PlanetUpgradeEvent {
+            user: user_addr,
+            resource: string::utf8(struct_name),
+            p_rate: my_planet_resource.p_rate
+        });
+    }
+
+    public entry fun upgrade_lumber(user: &signer) acquires MyPlanetResource, UniverseResource {
+        let user_addr = signer::address_of(user);
+        let my_planet_resource = borrow_global_mut<MyPlanetResource<LUMBER>>(user_addr);
+        
+        // Calculate metarial need for upgrade
+        let material_amount = C_MAX_CLAIMABLE_RESOURCE * my_planet_resource.p_rate * 7;
+        let coin = coin::withdraw<FOOD>(user, material_amount);
+
+        // burn material coin
+        let universe_resource = borrow_global<UniverseResource<FOOD>>(@module_addr);
+        coin::burn(coin, &universe_resource.burn_cap);
+        my_planet_resource.p_rate = my_planet_resource.p_rate + 1;
+
+        // Emit event
+        let type = type_info::type_of<LUMBER>();
+        let struct_name = type_info::struct_name(&type);
+        event::emit(PlanetUpgradeEvent {
+            user: user_addr,
+            resource: string::utf8(struct_name),
+            p_rate: my_planet_resource.p_rate
         });
     }
 }
