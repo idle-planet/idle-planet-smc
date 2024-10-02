@@ -6,6 +6,7 @@ module module_addr::idle_planet {
     use aptos_framework::coin;
     use aptos_framework::event;
     use aptos_framework::randomness;
+    use aptos_framework::aptos_account;
     use aptos_std::type_info;
     use module_addr::idle_planet_access;
 
@@ -14,8 +15,8 @@ module module_addr::idle_planet {
     const C_U_RATE_DENOMINATOR: u64 = 1000;
     const C_U_RATE_UPDATE_STEP: u128 = 5_000_000;
     const C_TOTAL_SPIN_RATE: u16 = 25_000;
-    const C_MAX_SPIN_TICKETS: u64 = 5;
     const C_RESOURCE_MAX_LEVEL: u64 = 6;
+    const C_SPIN_PRICE: u64 = 1000000; // 0.01 APT
 
     // Errors
     const E_PLANET_CREATED: u64 = 1;
@@ -77,8 +78,6 @@ module module_addr::idle_planet {
 
     struct MyPlanetSpinTicket has key {
         tickets: u64,
-        last_ts: u64, // seconds
-        s_rate: u64, // per hour
         attack_tickets: u8,
     }
 
@@ -186,10 +185,8 @@ module module_addr::idle_planet {
             p_rate: 1,
         });
         move_to(user, MyPlanetSpinTicket {
-            attack_tickets: 0,
             tickets: 3,
-            last_ts: now_s,
-            s_rate: 1,
+            attack_tickets: 3,
         });
 
         // Emit event
@@ -213,23 +210,6 @@ module module_addr::idle_planet {
             C_MAX_CLAIMABLE_RESOURCE
         } else {
             calculate_reward
-        }
-    }
-
-    #[view]
-    public fun current_spin_tickets(user_addr: address): u64 acquires MyPlanetSpinTicket {
-        if (!exists<MyPlanetSpinTicket>(user_addr)) {
-            return 0
-        };
-        let my_spin_ticket = borrow_global<MyPlanetSpinTicket>(user_addr);
-        let now_s = timestamp::now_seconds();
-        let time_diff_hours = (now_s - my_spin_ticket.last_ts) / 3600;
-
-        let my_tickets = my_spin_ticket.s_rate * time_diff_hours + my_spin_ticket.tickets;
-        if (my_tickets > C_MAX_SPIN_TICKETS) {
-            C_MAX_SPIN_TICKETS
-        } else {
-            my_tickets
         }
     }
     
@@ -364,9 +344,11 @@ module module_addr::idle_planet {
 
         // Consume ticket
         let my_spin_ticket = borrow_global_mut<MyPlanetSpinTicket>(user_addr);
-        assert!(my_spin_ticket.tickets > 0, E_INSUFFICIENT_TICKET);
-        my_spin_ticket.tickets = my_spin_ticket.tickets - 1;
-        my_spin_ticket.last_ts = timestamp::now_seconds();
+        if (my_spin_ticket.tickets > 0) {
+            my_spin_ticket.tickets = my_spin_ticket.tickets - 1;
+        } else {
+            aptos_account::transfer(user, @default_beneficary_addr, C_SPIN_PRICE);
+        };
 
         // NO_LUCK
         if (random_value < 8000) {
