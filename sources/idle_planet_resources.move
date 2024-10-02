@@ -146,7 +146,20 @@ module module_addr::idle_planet {
             mint_cap: mint_cap,
         });
 
+        let (burn_cap, freeze_cap, mint_cap) = coin::initialize<CRYST>(
+            &resource_signer,
+            string::utf8(b"Idle Planet Cryst"),
+            string::utf8(b"IPCRYST"),
+            0,
+            true,
+        );
         coin::register<CRYST>(resource_account);
+        move_to(resource_account, UniverseResource<CRYST> {
+            u_rate: 0,
+            burn_cap: burn_cap,
+            freeze_cap: freeze_cap,
+            mint_cap: mint_cap,
+        });
     }
 
     public entry fun create_planet(user: &signer) {
