@@ -94,7 +94,7 @@ module module_addr::idle_planet {
         );
         coin::register<GOLD>(resource_account);
         move_to(resource_account, UniverseResource<GOLD> {
-            u_rate: 1,
+            u_rate: C_U_RATE_DENOMINATOR,
             burn_cap: burn_cap,
             freeze_cap: freeze_cap,
             mint_cap: mint_cap,
@@ -109,7 +109,7 @@ module module_addr::idle_planet {
         );
         coin::register<LUMBER>(resource_account);
         move_to(resource_account, UniverseResource<LUMBER> {
-            u_rate: 1,
+            u_rate: C_U_RATE_DENOMINATOR,
             burn_cap: burn_cap,
             freeze_cap: freeze_cap,
             mint_cap: mint_cap,
@@ -124,7 +124,7 @@ module module_addr::idle_planet {
         );
         coin::register<STONE>(resource_account);
         move_to(resource_account, UniverseResource<STONE> {
-            u_rate: 1,
+            u_rate: C_U_RATE_DENOMINATOR,
             burn_cap: burn_cap,
             freeze_cap: freeze_cap,
             mint_cap: mint_cap,
